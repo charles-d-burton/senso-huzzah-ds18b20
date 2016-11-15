@@ -1,14 +1,14 @@
 
 
 /*
-  ESP8266 mDNS-SD responder and query sample
+  ESP8266 sensor post server
 
   This is an example of announcing and finding services.
   
   Instructions:
   - Update WiFi SSID and password as necessary.
-  - Flash the sketch to two ESP8266 boards
-  - The last one powered on should now find the other.
+  - Flash the sketch to ESP8266 boards
+  - Used in conjuction with the sensorelay sofware at https://github.com/charles-d-burton/sensorelay will post data to the relay
  */
 
 #include <ESP8266WiFi.h>
