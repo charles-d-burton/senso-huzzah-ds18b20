@@ -1,5 +1,4 @@
 
-
 /*
   ESP8266 sensor post server
 
@@ -17,10 +16,12 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <ArduinoJson.h>
+#include <ESP8266TrueRandom.h>
+#include "FS.h"
 
 // Data wire is plugged into port 2 on the Arduino
 #define ONE_WIRE_BUS 4
-#define TEMPERATURE_PRECISION 12 // Lower resolution
+#define TEMPERATURE_PRECISION 9 // Lower resolution
 
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
@@ -32,15 +33,16 @@ int numberOfDevices; // Number of temperature devices found
 
 DeviceAddress tempDeviceAddress; // We'll use this variable to store a found device address
 
-const char* ssid     = "...";
-const char* password = "...";
-const char* topic = "test";
+const char* ssid     = "Ilikechicken";
+const char* password = "##AA02049aa";
 char hostString[16] = {0};
+byte uuidNumber[16];
 
 void setup() {
   Serial.begin(115200);
   delay(100);
   Serial.println("\r\nsetup()");
+  getUUID();
 
   sprintf(hostString, "ESP_%06X", ESP.getChipId());
   Serial.print("Hostname: ");
@@ -172,8 +174,9 @@ void printTemperature(DeviceAddress deviceAddress)
   float tempC = sensors.getTempC(deviceAddress);
   StaticJsonBuffer<256> jsonBuffer;
   JsonObject& root = jsonBuffer.createObject();
-  root["sensor"] = hostString;
-  root["topic"] = topic;
+  JsonObject& sensor = root.createNestedObject("sensor");
+  sensor["device"] = hostString;
+  sensor["name"] = "testdevice";
   JsonObject& data = root.createNestedObject("data");
   data["tempC"] = tempC;
   data["tempF"] = DallasTemperature::toFahrenheit(tempC);
@@ -212,6 +215,39 @@ void updateRelay(char* message) {
       http.end();
     }
   }
+}
+
+void getUUID() {
+  // Generate a new UUID
+  // open the file in write mode
+  Serial.println("Opening filsystem");
+  //SPIFFS.format();
+  bool fsopen = SPIFFS.begin();
+  
+  if (fsopen) {
+    bool exists = SPIFFS.exists("/uuid.txt");
+    File f = SPIFFS.open("/uuid.txt", "w");
+    if (!exists) {
+      ESP8266TrueRandom.uuid(uuidNumber);
+      String uuidStr = ESP8266TrueRandom.uuidToString(uuidNumber);
+      Serial.println("Setting UUID to: " + uuidStr);
+      f.println(uuidStr);
+      f.flush();
+    } else {
+      Serial.println("File Found!");
+      //while(f.available()) {
+        String line = f.readString();
+        Serial.println("Found UUID!");
+        Serial.println(line);
+        line.getBytes(uuidNumber,16);
+      //}
+    }
+    f.close();
+  } else {
+    Serial.println("Unable to open filesystem");
+  }
+  
+
 }
 
 // function to print a device address
