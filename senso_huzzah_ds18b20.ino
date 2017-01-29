@@ -34,7 +34,7 @@ int numberOfDevices; // Number of temperature devices found
 DeviceAddress tempDeviceAddress; // We'll use this variable to store a found device address
 
 const char* ssid     = "Ilikechicken";
-const char* password = "##AA02049aa";
+const char* password = "******";
 char hostString[16] = {0};
 byte uuidNumber[16];
 
